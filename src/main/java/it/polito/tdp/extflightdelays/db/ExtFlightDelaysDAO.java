@@ -7,9 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.extflightdelays.model.Airline;
 import it.polito.tdp.extflightdelays.model.Airport;
+import it.polito.tdp.extflightdelays.model.Arco;
 import it.polito.tdp.extflightdelays.model.Flight;
 
 public class ExtFlightDelaysDAO {
@@ -37,7 +39,7 @@ public class ExtFlightDelaysDAO {
 		}
 	}
 
-	public List<Airport> loadAllAirports() {
+	public List<Airport> loadAllAirports(Map<Integer, Airport> idMap) {
 		String sql = "SELECT * FROM airports";
 		List<Airport> result = new ArrayList<Airport>();
 
@@ -51,6 +53,7 @@ public class ExtFlightDelaysDAO {
 						rs.getString("CITY"), rs.getString("STATE"), rs.getString("COUNTRY"), rs.getDouble("LATITUDE"),
 						rs.getDouble("LONGITUDE"), rs.getDouble("TIMEZONE_OFFSET"));
 				result.add(airport);
+				idMap.put(airport.getId(), airport);
 			}
 
 			conn.close();
@@ -80,6 +83,34 @@ public class ExtFlightDelaysDAO {
 						rs.getDouble("ELAPSED_TIME"), rs.getInt("DISTANCE"),
 						rs.getTimestamp("ARRIVAL_DATE").toLocalDateTime(), rs.getDouble("ARRIVAL_DELAY"));
 				result.add(flight);
+			}
+
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+
+	public List<Arco> getArchi(Double minima, Map<Integer, Airport> idMap) {
+		String sql = "select ORIGIN_AIRPORT_ID as origine, DESTINATION_AIRPORT_ID as destinazione, avg(`DISTANCE`) as peso " + 
+				"from flights " + 
+				"group by ORIGIN_AIRPORT_ID, DESTINATION_AIRPORT_ID " + 
+				"having avg(`DISTANCE`)>?";
+		List<Arco> result = new ArrayList<Arco>();
+
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setDouble(1, minima);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				Arco a = new Arco(idMap.get(rs.getInt("origine")), idMap.get(rs.getInt("destinazione")), rs.getDouble("peso"));
+				result.add(a);
 			}
 
 			conn.close();

@@ -3,7 +3,9 @@ package it.polito.tdp.extflightdelays;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
+import it.polito.tdp.extflightdelays.model.Vicino;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,7 +35,7 @@ public class FXMLController {
     private Button btnAnalizza;
 
     @FXML
-    private ComboBox<?> cmbBoxAeroportoPartenza;
+    private ComboBox<Airport> cmbBoxAeroportoPartenza;
 
     @FXML
     private Button btnAeroportiConnessi;
@@ -46,12 +48,40 @@ public class FXMLController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
-
+    	
+    	String minimaS = distanzaMinima.getText();
+    	
+    	Double minima=0.0; 
+    	try {
+			minima = Double.parseDouble(minimaS);
+		} catch (NumberFormatException e) {
+			txtResult.appendText("Errore inserisci un numero");
+			e.printStackTrace();
+			return;
+		}
+    	
+    	model.creaGrafo(minima);
+    	
+    	cmbBoxAeroportoPartenza.getItems().addAll(model.getAeroporti());
+    	
+    	
     }
 
     @FXML
     void doCalcolaAeroportiConnessi(ActionEvent event) {
 
+    	Airport partenza = cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(partenza==null) {
+    		txtResult.appendText("Errore");
+    		return;
+    	}
+    	
+    	for(Vicino v: model.getVicini(partenza)) {
+    		txtResult.appendText(v+"\n");
+    	}
+    	
+    	
     }
 
     @FXML
