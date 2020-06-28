@@ -86,6 +86,35 @@ public class FXMLController {
 
     @FXML
     void doCercaItinerario(ActionEvent event) {
+    	
+    	txtResult.clear();
+    	
+    	String migliaMassimeS = numeroVoliTxtInput.getText();
+    	
+    	Double migliaMassime = 0.0;
+    	
+    	try {
+			migliaMassime = Double.parseDouble(migliaMassimeS);
+		} catch (NumberFormatException e) {
+			txtResult.appendText("Errore inserisci un numero");
+			e.printStackTrace();
+			return;
+		}
+    	
+    	Airport partenza = cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(partenza==null) {
+    		txtResult.appendText("Errore, seleziona un aeroporto di partenza");
+    		return;
+    	}
+    	
+    	model.cerca(partenza, migliaMassime);
+    	
+    	for(Airport a: model.getBest()) {
+    		txtResult.appendText(a+"\n");
+    	}
+
+    	txtResult.appendText("Miglia usate "+model.getMigliaUsate());
 
     }
 
